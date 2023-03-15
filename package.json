@@ -4,10 +4,10 @@
 	"description": "Earn time with this powerful, scalable and easy to config boilerplate.",
 	"author": "gabodmc",
 	"license": "MIT",
-	"homepage": "https://github.com/gabodmc/nodejs-boilerplate#readme",
+	"homepage": "https://github.com/MrLuis-WebMaster/invitation-manager-backend#readme",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/gabodmc/nodejs-boilerplate"
+		"url": "https://github.com/MrLuis-WebMaster/invitation-manager-backend"
 	},
 	"scripts": {
 		"start": "npx sequelize-cli db:migrate && node app.js",
