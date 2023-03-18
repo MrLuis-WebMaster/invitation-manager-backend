@@ -17,6 +17,4 @@ const endpointResponse = ({
 	});
 };
 
-module.exports = {
-	endpointResponse,
-};
+module.exports = endpointResponse;
