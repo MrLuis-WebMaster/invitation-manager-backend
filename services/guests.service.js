@@ -349,24 +349,29 @@ exports.isConfirmedGuestService = async ({
 };
 exports.createAccompanistsService = async ({ id, name, dataAccompanist }) => {
 	try {
-			const guest = await Guest.findOne({
-				where: {
-					id: Number(id),
-					name,
-				},
-				include: {
-					model: User,
-				},
-			});
-			const createdResponse = dataAccompanist.map(async data => {
-				return await guest.createAccompanist({ ...data });
-			});
+		const guest = await Guest.findOne({
+			where: {
+				id: Number(id),
+				name,
+			},
+			include: {
+				model: User,
+			},
+		});
+		const createdResponse = dataAccompanist.map(async data => {
+			return await guest.createAccompanist({ ...data });
+		});
 		return createdResponse;
 	} catch (error) {
 		throw new ErrorObject(error.message, error.statusCode || 500);
 	}
 };
-exports.deleteAccompanistService = async ({ name, identifier, age, GuestId }) => {
+exports.deleteAccompanistService = async ({
+	name,
+	identifier,
+	age,
+	GuestId,
+}) => {
 	try {
 		await Accompanist.destroy({
 			include: {
@@ -381,12 +386,15 @@ exports.deleteAccompanistService = async ({ name, identifier, age, GuestId }) =>
 				age,
 			},
 		});
-		return true
+		return true;
 	} catch (error) {
 		throw new ErrorObject(error.message, error.statusCode || 500);
 	}
 };
-exports.updateAccompanistService = async ({ newAccompanist,oldAccompanist }) => {
+exports.updateAccompanistService = async ({
+	newAccompanist,
+	oldAccompanist,
+}) => {
 	try {
 		const updatedUser = await Accompanist.update(
 			{ ...newAccompanist },

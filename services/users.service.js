@@ -1,6 +1,17 @@
 const { ErrorObject } = require('../helpers');
 const { User } = require('../database/models');
 
+exports.getAllUsersService = async () => {
+	try {
+		const users = await User.findAll();
+		if (!users) {
+			throw new ErrorObject('Error', 404);
+		}
+		return users;
+	} catch (error) {
+		throw new ErrorObject(error.message, error.statusCode || 500);
+	}
+};
 exports.getUserService = async email => {
 	try {
 		const user = await User.findOne({

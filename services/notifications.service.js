@@ -3,7 +3,11 @@ const { User } = require('../database/models');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-exports.sendNotificationGuestUpdatedStatusService = async ({ name, status, UserId }) => {
+exports.sendNotificationGuestUpdatedStatusService = async ({
+	name,
+	status,
+	UserId,
+}) => {
 	try {
 		const user = await User.findByPk(UserId);
 
@@ -55,4 +59,3 @@ exports.sendNotificationGuestUpdatedStatusService = async ({ name, status, UserI
 		throw new ErrorObject(error.message, error.statusCode || 500);
 	}
 };
-

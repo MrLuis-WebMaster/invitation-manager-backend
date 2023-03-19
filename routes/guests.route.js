@@ -6,12 +6,12 @@ const {
 	updateGuest,
 	getDetailsGuest,
 	getAllGuest,
-    getListGuest,
-    getFormReminder,
-    isConfirmedGuest,
-    createAccompanist,
+	getListGuest,
+	getFormReminder,
+	isConfirmedGuest,
+	createAccompanist,
 	deleteAccompanist,
-	updateAccompanist
+	updateAccompanist,
 } = require('../controllers/guests.controller');
 const router = express.Router();
 

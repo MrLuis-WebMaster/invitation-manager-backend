@@ -1,4 +1,7 @@
-const { getUserService, createUserService } = require('../services/users.service');
+const {
+	getUserService,
+	createUserService,
+} = require('../services/users.service');
 const { catchAsync, endpointResponse } = require('../helpers/index');
 const createHttpError = require('http-errors');
 

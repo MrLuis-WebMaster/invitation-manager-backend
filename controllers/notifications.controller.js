@@ -1,15 +1,17 @@
 const { catchAsync, endpointResponse } = require('../helpers/index');
 const createHttpError = require('http-errors');
-const { sendNotificationGuestUpdatedStatusService } = require('../services/notifications.service')
+const {
+	sendNotificationGuestUpdatedStatusService,
+} = require('../services/notifications.service');
 module.exports = {
-    sendNotificacion: catchAsync(async (req, res, next) => {
+	sendNotificacion: catchAsync(async (req, res, next) => {
 		try {
-            await sendNotificationGuestUpdatedStatusService(req.body)
+			await sendNotificationGuestUpdatedStatusService(req.body);
 			endpointResponse({
-                res,
-                message: 'Sent success',
-                body: true,
-            });
+				res,
+				message: 'Sent success',
+				body: true,
+			});
 		} catch (error) {
 			const httpError = createHttpError(
 				error.statusCode,
@@ -17,5 +19,5 @@ module.exports = {
 			);
 			next(httpError);
 		}
-	})
-}
+	}),
+};

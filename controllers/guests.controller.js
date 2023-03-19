@@ -10,7 +10,7 @@ const {
 	isConfirmedGuestService,
 	createAccompanistsService,
 	deleteAccompanistService,
-	updateAccompanistService
+	updateAccompanistService,
 } = require('../services/guests.service');
 const { catchAsync, endpointResponse } = require('../helpers/index');
 const createHttpError = require('http-errors');
@@ -108,7 +108,7 @@ module.exports = {
 		try {
 			const { email } = req.params;
 			const { id, name } = req.query;
-			const response = await getFullDetailsGuestService(id,email,name);
+			const response = await getFullDetailsGuestService(id, email, name);
 			endpointResponse({
 				res,
 				message: 'Success',
@@ -125,7 +125,7 @@ module.exports = {
 	getFormReminder: catchAsync(async (req, res, next) => {
 		try {
 			const { id, name } = req.query;
-			const response = getGuestByIdAndNameService(id,name);
+			const response = getGuestByIdAndNameService(id, name);
 			endpointResponse({
 				res,
 				message: 'Success',
@@ -222,5 +222,5 @@ module.exports = {
 			);
 			next(httpError);
 		}
-	})
+	}),
 };
