@@ -9,7 +9,8 @@ module.exports = (sequelize, DataTypes) => {
 		 */
 		static associate(models) {
 			// define association here
-			User.hasMany(models.Guest);
+			User.hasMany(models.Event);
+			User.hasOne(models.Role);
 		}
 	}
 	User.init(
@@ -17,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
 			name: DataTypes.STRING,
 			email: DataTypes.STRING,
 			numberPhone: DataTypes.STRING,
+			isActive: DataTypes.BOOLEAN,
+			customerId: DataTypes.STRING,
 		},
 		{
 			sequelize,

@@ -1,5 +1,5 @@
 const { ErrorObject } = require('../helpers');
-const { User } = require('../database/models');
+const { User,Role } = require('../database/models');
 
 exports.getAllUsersService = async () => {
 	try {
@@ -33,12 +33,22 @@ exports.createUserService = async body => {
 			where: {
 				email: body.email,
 			},
+			include: [Role]
 		});
 		if (checkUser instanceof User) {
 			throw new ErrorObject('Mail already exists on our platform', 404);
 		}
-		const createdUser = await User.create({ ...body });
-		return checkUser || createdUser;
+		const createdUser = await User.create(body);
+
+		const defaultRole = await Role.create({
+		  name: 'user',
+		  description: 'Role default'
+		});
+		await createdUser.setRole(defaultRole);
+		const userWithRole = await User.findByPk(createdUser.id, {
+			include: [Role]
+		});
+		return userWithRole;
 	} catch (error) {
 		throw new ErrorObject(error.message, error.statusCode || 500);
 	}

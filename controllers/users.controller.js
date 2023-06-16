@@ -2,6 +2,9 @@ const {
 	getUserService,
 	createUserService,
 } = require('../services/users.service');
+const {
+	createCustomerStripe,
+} = require('../services/stripe.service');
 const { catchAsync, endpointResponse } = require('../helpers/index');
 const createHttpError = require('http-errors');
 
@@ -25,6 +28,7 @@ module.exports = {
 	postUser: catchAsync(async (req, res, next) => {
 		try {
 			const response = await createUserService(req.body);
+			await createCustomerStripe(req.body.email)
 			endpointResponse({
 				res,
 				message: 'Success',
