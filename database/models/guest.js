@@ -9,8 +9,7 @@ module.exports = (sequelize, DataTypes) => {
 		 */
 		static associate(models) {
 			// define association here
-			Guest.belongsTo(models.User);
-
+			Guest.belongsTo(models.Event);
 			Guest.hasMany(models.Accompanist);
 		}
 	}
@@ -19,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
 			name: DataTypes.STRING,
 			numberPhone: DataTypes.STRING,
 			numberGuest: DataTypes.STRING,
-			slug: DataTypes.STRING,
+			slug: DataTypes.TEXT,
 			messageCustomize: DataTypes.TEXT,
 			isConfirmed: {
 				type: DataTypes.BOOLEAN,

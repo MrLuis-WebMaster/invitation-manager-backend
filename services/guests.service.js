@@ -1,12 +1,12 @@
 const { ErrorObject } = require('../helpers');
-const { Guest, User, Accompanist } = require('../database/models');
+const { Guest, User, Accompanist, Event } = require('../database/models');
 const { Op } = require('sequelize');
-
+const { encodeData } = require('../utils/token');
 exports.createGuestService = async body => {
 	try {
-		const guest = await Guest.findOne({
+		const event = await Event.findOne({
 			where: {
-				numberPhone: body.numberPhone,
+				id: body.eventId,
 			},
 			include: {
 				model: User,
@@ -16,22 +16,39 @@ exports.createGuestService = async body => {
 			},
 		});
 
-		if (guest instanceof Guest) {
+		if (!event) {
+			throw new ErrorObject('Event not found', 404);
+		}
+
+		const guest = await Guest.findOne({
+			where: {
+				numberPhone: body.numberPhone,
+				EventId: body.eventId,
+			},
+		});
+
+		if (guest) {
 			throw new ErrorObject('Number Phone already exists on our platform', 400);
 		}
 
-		const user = await User.findOne({
-			where: {
-				email: body.email,
-			},
-		});
-		const creatingSlug = body.name.trim().toLowerCase().replace(/ /g, '-');
-		const guestCreated = await user.createGuest({
+		const creatingSlug = encodeData({
+			event,
+			guest:{
+				name: body.name,
+				numberPhone: body.numberPhone,
+				numberGuest: body.numberGuest,
+				messageCustomize: body.messageCustomize,
+			}
+		})
+
+		const guestCreated = await Guest.create({
 			name: body.name,
 			numberPhone: body.numberPhone,
 			slug: creatingSlug,
 			numberGuest: body.numberGuest,
 			messageCustomize: body.messageCustomize,
+			isConfirmed: body.isConfirmed,
+			EventId: body.eventId,
 		});
 
 		return guestCreated;
@@ -63,37 +80,29 @@ exports.deleteGuestByNumberPhone = async numberPhone => {
 		throw new ErrorObject(error.message, error.statusCode || 500);
 	}
 };
-exports.updateGuestService = async ({ oldGuest, newGuest, email }) => {
+const findGuestByNumberPhone = async (numberPhone) => {
+	const guest = await Guest.findOne({
+		where: {
+			numberPhone,
+		},
+	});
+	return guest;
+};
+exports.updateGuestService = async ({ oldGuest, newGuest }) => {
 	try {
-		let guest = null;
-
-		if (oldGuest.numberPhone !== newGuest.numberPhone) {
-			guest = await Guest.findOne({
-				where: {
-					numberPhone: newGuest.numberPhone,
-				},
-				include: {
-					model: User,
-					where: {
-						email,
-					},
-				},
-			});
+		const existingGuest = await findGuestByNumberPhone(newGuest.numberPhone);
+		if (existingGuest && existingGuest.id !== oldGuest.id) {
+			throw new Error('Este número de teléfono ya ha sido registrado por otro usuario');
 		}
-
-		if (guest instanceof Guest) {
-			throw new Error('Number Phone already exists on our platform');
-		}
-
 		const guestUpated = await Guest.update(
 			{ ...newGuest },
 			{
 				where: { ...oldGuest },
 			}
-		);
+			);
 		return guestUpated;
 	} catch (error) {
-		throw new ErrorObject(error.message, error.statusCode || 500);
+		throw new Error('Error al actualizar el invitado');
 	}
 };
 exports.getAllGuestService = async ({
@@ -102,6 +111,7 @@ exports.getAllGuestService = async ({
 	page,
 	isConfirmed,
 	email,
+	eventId,
 }) => {
 	try {
 		const user = await User.findOne({
@@ -109,49 +119,58 @@ exports.getAllGuestService = async ({
 				email,
 			},
 		});
+
+		if (!user) {
+			throw new ErrorObject(`User with email ${email} not found`, 404);
+		}
+
 		const limitResult = Number(limit) || 10;
 		const searchResult = search || '';
 		const numberPage = Number(page);
 
-		const countGuest = await User.findAndCountAll({
+		const whereClause = {
+			name: {
+				[Op.like]: `%${searchResult}%`,
+			},
+		};
+
+		// eslint-disable-next-line no-extra-boolean-cast
+		if (Boolean(isConfirmed)) {
+			whereClause.isConfirmed = {
+				[Op.is]:
+					isConfirmed?.toLowerCase() === 'null'
+						? null
+						: isConfirmed?.toLowerCase() === 'true',
+			};
+		}
+
+		const countGuest = await Guest.findAndCountAll({
 			where: {
-				email,
+				...whereClause,
+				EventId: eventId,
 			},
 			include: {
-				model: Guest,
+				model: Event,
 				where: {
-					...(Boolean(isConfirmed) && {
-						isConfirmed: {
-							[Op.is]:
-								isConfirmed?.toLowerCase() === 'null'
-									? null
-									: isConfirmed?.toLowerCase() === 'true',
-						},
-					}),
-					name: {
-						[Op.like]: `%${searchResult}%`,
-					},
+					UserId: user.id,
 				},
 			},
 		});
 
-		const listGuests = await user.getGuests({
+		const listGuests = await Guest.findAll({
 			where: {
-				...(Boolean(isConfirmed) && {
-					isConfirmed: {
-						[Op.is]:
-							isConfirmed?.toLowerCase() === 'null'
-								? null
-								: isConfirmed?.toLowerCase() === 'true',
-					},
-				}),
-				name: {
-					[Op.like]: `%${searchResult}%`,
+				...whereClause,
+				EventId: eventId,
+			},
+			include: {
+				model: Event,
+				where: {
+					UserId: user.id,
 				},
 			},
 			order: [['createdAt', 'DESC']],
 			limit: limitResult,
-			offset: numberPage ? numberPage * limitResult : 0,
+			offset: numberPage ? (numberPage - 1) * limitResult : 0,
 		});
 
 		const totalPages = Math.ceil(countGuest.count / limitResult);
@@ -167,32 +186,32 @@ exports.getAllGuestService = async ({
 						: numberPage - 1 + 1,
 			},
 			infoCountGuests: {
-				totalSumGuest: countGuest.rows[0]?.Guests?.reduce(
+				totalSumGuest: countGuest.rows.reduce(
 					(accumulator, currentValue) =>
 						accumulator + Number(currentValue.numberGuest),
 					0
 				),
-				totalIsConfirmed: countGuest.rows[0]?.Guests?.filter(
-					guest => guest.isConfirmed === true
-				).reduce(
-					(accumulator, currentValue) =>
-						accumulator + Number(currentValue.numberGuest),
-					0
-				),
-				totalIsDeclined: countGuest.rows[0]?.Guests?.filter(
-					guest => guest.isConfirmed === false
-				).reduce(
-					(accumulator, currentValue) =>
-						accumulator + Number(currentValue.numberGuest),
-					0
-				),
-				totalIsNotConfirmed: countGuest.rows[0]?.Guests?.filter(
-					guest => guest.isConfirmed === null
-				).reduce(
-					(accumulator, currentValue) =>
-						accumulator + Number(currentValue.numberGuest),
-					0
-				),
+				totalIsConfirmed: countGuest.rows
+					.filter(guest => guest.isConfirmed === true)
+					.reduce(
+						(accumulator, currentValue) =>
+							accumulator + Number(currentValue.numberGuest),
+						0
+					),
+				totalIsDeclined: countGuest.rows
+					.filter(guest => guest.isConfirmed === false)
+					.reduce(
+						(accumulator, currentValue) =>
+							accumulator + Number(currentValue.numberGuest),
+						0
+					),
+				totalIsNotConfirmed: countGuest.rows
+					.filter(guest => guest.isConfirmed === null)
+					.reduce(
+						(accumulator, currentValue) =>
+							accumulator + Number(currentValue.numberGuest),
+						0
+					),
 			},
 		};
 

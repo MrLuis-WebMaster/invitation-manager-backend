@@ -14,6 +14,7 @@ const {
 } = require('../services/guests.service');
 const { catchAsync, endpointResponse } = require('../helpers/index');
 const createHttpError = require('http-errors');
+const { decodeData } = require('../utils/token');
 
 module.exports = {
 	createGuest: catchAsync(async (req, res, next) => {
@@ -86,7 +87,7 @@ module.exports = {
 	}),
 	getAllGuest: catchAsync(async (req, res, next) => {
 		try {
-			const { meta, listGuests } = getAllGuestService({
+			const { meta, listGuests } = await getAllGuestService({
 				...req.query,
 				...req.params,
 			});
@@ -214,6 +215,21 @@ module.exports = {
 				res,
 				message: 'Success',
 				body: await deleteAccompanistService(req.body),
+			});
+		} catch (error) {
+			const httpError = createHttpError(
+				error.statusCode,
+				`[Error retrieving index] - [index - POST]: ${error.message}`
+			);
+			next(httpError);
+		}
+	}),
+	decodeToken: catchAsync(async (req, res, next) => {
+		try {
+			endpointResponse({
+				res,
+				message: 'Success',
+				body: decodeData(req.params.token),
 			});
 		} catch (error) {
 			const httpError = createHttpError(

@@ -12,12 +12,14 @@ const {
 	createAccompanist,
 	deleteAccompanist,
 	updateAccompanist,
+	decodeToken,
 } = require('../controllers/guests.controller');
 const router = express.Router();
 
 router.post('/', createGuest);
 router.delete('/', deleteGuest);
 router.put('/', updateGuest);
+router.get('/decode/:token', decodeToken);
 router.get('/guest-invitation/:slug', getGuest);
 router.get('/:email', getAllGuest);
 router.get('/details/:email', getDetailsGuest);
