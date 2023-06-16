@@ -50,11 +50,11 @@ module.exports = {
 			if (isGeneratedQR) return;
 
 			client.on('authenticated', () => {
-				endpointResponse({
-					res,
-					message: 'QR GENERATED',
-					body: 'authenticated',
-				});
+				// endpointResponse({
+				// 	res,
+				// 	message: 'QR GENERATED',
+				// 	body: 'authenticated',
+				// });
 			});
 		} catch (error) {
 			const client = await getSessionWSService(req.body.email);
