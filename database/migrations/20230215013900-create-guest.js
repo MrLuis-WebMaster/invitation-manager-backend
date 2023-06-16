@@ -18,7 +18,7 @@ module.exports = {
 				type: Sequelize.STRING,
 			},
 			slug: {
-				type: Sequelize.STRING,
+				type: Sequelize.TEXT,
 			},
 			messageCustomize: {
 				type: Sequelize.TEXT,

@@ -17,6 +17,12 @@ module.exports = {
 			numberPhone: {
 				type: Sequelize.STRING,
 			},
+			isActive: {
+				type: Sequelize.BOOLEAN,
+			},
+			customerId: {
+				type: Sequelize.STRING,
+			},
 			createdAt: {
 				allowNull: false,
 				type: Sequelize.DATE,
